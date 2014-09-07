@@ -49,8 +49,11 @@
   (vector-map (λ (o)
                 (match o
                   [(offset t d? i)
-                   (tzoffset t d? (bytes->string/utf-8
-                                   (car (regexp-match #px#"[^\0]+" abbreviation-bytes i))))]))
+                   (tzoffset t
+                             d?
+                             (string->immutable-string
+                              (bytes->string/utf-8
+                               (car (regexp-match #px#"[^\0]+" abbreviation-bytes i)))))]))
               offsets))
 
 (define (build-intervals txtimes offset-indices tzoffsets)

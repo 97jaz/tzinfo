@@ -5,5 +5,9 @@
 (provide (all-defined-out))
 
 (define-generics tzinfo-source
-  (seconds->tzoffset/utc    tzinfo-source tzid seconds)
-  (seconds->tzoffset/local  tzinfo-source tzid seconds))
+  (tzinfo->all-tzids          tzinfo-source)
+  (tzinfo-has-tzid?           tzinfo-source tzid)
+  (tzinfo-tzid->country-codes tzinfo-source tzid)
+  (tzinfo-country-code->tzids tzinfo-source cc)
+  (seconds->tzoffset/utc      tzinfo-source tzid seconds)
+  (seconds->tzoffset/local    tzinfo-source tzid seconds))

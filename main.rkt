@@ -24,7 +24,11 @@
  [current-tzinfo-source                  (parameter/c (or/c tzinfo-source? false/c))]
  [set-default-tzinfo-source-constructor! (-> (-> tzinfo-source?) void?)]
  [utc-seconds->tzoffset                  (-> string? real? tzoffset?)]
- [local-seconds->tzoffset                (-> string? real? (or/c tzoffset? tzgap? tzoverlap?))])
+ [local-seconds->tzoffset                (-> string? real? (or/c tzoffset? tzgap? tzoverlap?))]
+ [all-tzids                              (-> (listof string?))]
+ [tzid-exists?                           (-> string? boolean?)]
+ [tzid->country-codes                    (-> string? (listof string?))]
+ [country-code->tzids                    (-> string? (listof string?))])
 
 (define current-tzinfo-source
   (make-parameter #f))
@@ -34,6 +38,18 @@
 
 (define (local-seconds->tzoffset tzid seconds)
   (seconds->tzoffset/local (ensure-current-tzinfo-source) tzid seconds))
+
+(define (all-tzids)
+  (tzinfo->all-tzids (ensure-current-tzinfo-source)))
+
+(define (tzid-exists? tzid)
+  (tzinfo-has-tzid? (ensure-current-tzinfo-source) tzid))
+
+(define (tzid->country-codes tzid)
+  (tzinfo-tzid->country-codes (ensure-current-tzinfo-source) tzid))
+
+(define (country-code->tzids cc)
+  (tzinfo-country-code->tzids (ensure-current-tzinfo-source) cc))
 
 (define (ensure-current-tzinfo-source)
   (or (current-tzinfo-source)

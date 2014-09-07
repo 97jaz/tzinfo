@@ -2,10 +2,12 @@
 
 (require racket/contract/base
          racket/path
-         racket/match)
+         racket/match
+         racket/set)
 (require "generics.rkt"
          "structs.rkt"
          "tzfile-parser.rkt"
+         "tabfile-parser.rkt"
          "zoneinfo-search.rkt")
 
 (provide current-zoneinfo-search-path
@@ -21,16 +23,38 @@
 
 (struct zoneinfo
   (dir
-   zones)
+   tzids
+   zones
+   tabzone-index)
   #:transparent
   #:methods gen:tzinfo-source
   [(define seconds->tzoffset/utc   zoneinfo-seconds->tzoffset/utc)
-   (define seconds->tzoffset/local zoneinfo-seconds->tzoffset/local)])
+   (define seconds->tzoffset/local zoneinfo-seconds->tzoffset/local)
+   
+   (define (tzinfo->all-tzids zi)
+     (sort (set->list (zoneinfo-tzids zi))
+           string<?))
+   
+   (define (tzinfo-has-tzid? zi tzid)
+     (set-member? (zoneinfo-tzids zi) tzid))
+   
+   (define (tzinfo-tzid->country-codes zi tzid)
+     (define tab (hash-ref (zoneinfo-tabzone-index zi) tzid #f))
+     (if tab (tabzone-country-codes tab) '()))
+   
+   (define (tzinfo-country-code->tzids zi cc)
+     (for/list ([tab (in-hash-values (zoneinfo-tabzone-index zi))]
+                #:when (member cc (tabzone-country-codes tab)))
+       (tabzone-id tab)))])
+       
 
 (define (make-zoneinfo-source)
-  (zoneinfo (find-zoneinfo-directory)
-            (make-hash)))
-   
+  (define dir (find-zoneinfo-directory))
+  (zoneinfo dir
+            (read-tzids dir)
+            (make-hash)
+            (parse-tabfile dir)))
+
 (define (zoneinfo-zone zinfo tzid)
   (hash-ref! (zoneinfo-zones zinfo)
              tzid
@@ -59,9 +83,10 @@
                     (build-path path "tab" "zone_sun.tab")))))
 
 (define (read-tzids dir)
-  (for/list ([p (in-directory dir)]
-             #:unless (excluded-zoneinfo-path? p))
-    (path->string (find-relative-path dir p))))
+  (for/set ([p (in-directory dir)]
+            #:unless (excluded-zoneinfo-path? p))
+    (string->immutable-string
+     (path->string (find-relative-path dir p)))))
  
 (define (excluded-zoneinfo-path? path)
   (or (directory-exists? path)
