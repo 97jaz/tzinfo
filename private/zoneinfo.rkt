@@ -6,11 +6,13 @@
          racket/set)
 (require "generics.rkt"
          "structs.rkt"
+         "os/unix.rkt"
          "tzfile-parser.rkt"
          "tabfile-parser.rkt"
          "zoneinfo-search.rkt")
 
-(provide current-zoneinfo-search-path
+(provide (struct-out zoneinfo)
+         current-zoneinfo-search-path
          make-zoneinfo-source)
 
 (define (zoneinfo-seconds->tzoffset/utc zi tzid s)
@@ -45,8 +47,19 @@
    (define (tzinfo-country-code->tzids zi cc)
      (for/list ([tab (in-hash-values (zoneinfo-tabzone-index zi))]
                 #:when (member cc (tabzone-country-codes tab)))
-       (tabzone-id tab)))])
-       
+       (tabzone-id tab)))
+   
+   (define (detect-system-tzid zi)
+     (define candidate
+       (case (system-type)
+         [(unix macosx)
+          (detect-tzid/unix (zoneinfo-dir zi))]
+         [else
+          #f]))
+     
+     (and (tzinfo-has-tzid? zi candidate)
+          candidate))])
+
 
 (define (make-zoneinfo-source)
   (define dir (find-zoneinfo-directory))

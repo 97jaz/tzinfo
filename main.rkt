@@ -12,8 +12,6 @@
   (with-handlers ([exn:fail:filesystem? (lambda _ #f)])
     (dynamic-require 'tzinfo/zoneinfo-data 'ZONEINFO-DATA)))
 
-(define make-tzinfo-source (-> tzinfo-source?))
-
 (provide (struct-out tzoffset)
          (struct-out tzgap)
          (struct-out tzoverlap)
@@ -28,7 +26,8 @@
  [all-tzids                              (-> (listof string?))]
  [tzid-exists?                           (-> string? boolean?)]
  [tzid->country-codes                    (-> string? (listof string?))]
- [country-code->tzids                    (-> string? (listof string?))])
+ [country-code->tzids                    (-> string? (listof string?))]
+ [system-tzid                            (-> (or/c string? false/c))])
 
 (define current-tzinfo-source
   (make-parameter #f))
@@ -64,3 +63,6 @@
   (set! default-tzinfo-source-constructor fn))
 
 (define default-tzinfo-source-constructor (λ () (make-zoneinfo-source)))
+
+(define (system-tzid)
+  (detect-system-tzid (ensure-current-tzinfo-source)))

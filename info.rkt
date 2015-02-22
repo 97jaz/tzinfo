@@ -1,9 +1,9 @@
 #lang info
 
-(define version "0.1")
+(define name "TZInfo")
+(define version "0.2")
 (define collection "tzinfo")
 (define deps (list "base"
-                   (list "tzinfo" '#:platform 'windows)))
+                   (list "tzdata" '#:platform 'windows)))
 
-
-
+(define scribblings '(("tzinfo.scrbl" ())))
