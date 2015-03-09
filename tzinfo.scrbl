@@ -102,17 +102,6 @@ ISO 3166 alpha-2 country code.
 ]
 }
 
-@defproc[(canonical-tzid [tzid string?]) (or/c string? #f)]{
-Returns the canonical time zone ID corresponding to the given ID.
-
-@examples[#:eval the-eval
-(canonical-tzid "US/Eastern")
-(canonical-tzid "UTC")
-(canonical-tzid "Europe/London")
-(canonical-tzid "Fillory/Whitespire")
-]
-}
-
 @defproc[(system-tzid) (or/c string? #f)]{
 Returns the ID of the current system time zone, if it can be determined, @racket[#f] otherwise.
 }
