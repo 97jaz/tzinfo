@@ -33,7 +33,6 @@ Returns a list containing all of the time zone IDs in the database.
 @defproc[(tzid-exists? [tzid string?]) boolean?]{
 Returns @racket[#t] if the given ID is in the database, @racket[#f] otherwise.
         
-Examples:
 @examples[#:eval the-eval
 (tzid-exists? "Europe/London")
 (tzid-exists? "Fillory/Whitespire")
@@ -48,7 +47,6 @@ returns a @racket[tzoffset?] describing the offset from UTC in effect at that mo
 in the given time zone. Raises @racket[exn:fail:tzinfo:zone-not-found] if the given time zone
 ID is not in the database.
 
-Examples:
 @examples[#:eval the-eval
 (utc-seconds->tzoffset "America/New_York" 0)
 (utc-seconds->tzoffset "Fillory/Whitespire" 0)
@@ -77,7 +75,6 @@ in effect (as, for example, at the end of daylight saving time, when an hour is 
 
 Raises @racket[exn:fail:tzinfo:zone-not-found] if the given time zone ID is not in the database.
 
-Examples:
 @examples[#:eval the-eval
 (local-seconds->tzoffset "America/New_York" 1409606993)
 (local-seconds->tzoffset "America/New_York" 1394330400)
@@ -88,7 +85,6 @@ Examples:
 @defproc[(tzid->country-codes [tzid string?]) (listof string?)]{
 Returns a list of ISO 3166 alpha-2 country codes in which the given time zone is used.
 
-Examples:
 @examples[#:eval the-eval
 (tzid->country-codes "Europe/Moscow")
 (tzid->country-codes "Antarctica/Troll")
@@ -100,10 +96,20 @@ Examples:
 Returns a list of time zone IDs that are used in the country identified by the given
 ISO 3166 alpha-2 country code.
 
-Examples:
 @examples[#:eval the-eval
 (country-code->tzids "US")
 (country-code->tzids "IT")
+]
+}
+
+@defproc[(canonical-tzid [tzid string?]) (or/c string? #f)]{
+Returns the canonical time zone ID corresponding to the given ID.
+
+@examples[#:eval the-eval
+(canonical-tzid "US/Eastern")
+(canonical-tzid "UTC")
+(canonical-tzid "Europe/London")
+(canonical-tzid "Fillory/Whitespire")
 ]
 }
 

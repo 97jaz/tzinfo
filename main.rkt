@@ -4,6 +4,7 @@
 
 (require "private/generics.rkt"
          "private/structs.rkt"
+         "private/canonical.rkt"
          "zoneinfo.rkt")
 
 ;; Load the zoneinfo-data package, if it's installed
@@ -27,6 +28,7 @@
  [tzid-exists?                           (-> string? boolean?)]
  [tzid->country-codes                    (-> string? (listof string?))]
  [country-code->tzids                    (-> string? (listof string?))]
+ [canonical-tzid                         (-> string? (or/c string? #f))]
  [system-tzid                            (-> (or/c string? false/c))])
 
 (define current-tzinfo-source
@@ -65,4 +67,12 @@
 (define default-tzinfo-source-constructor (λ () (make-zoneinfo-source)))
 
 (define (system-tzid)
-  (detect-system-tzid (ensure-current-tzinfo-source)))
+  (unless memoized-system-tzid
+    (set! memoized-system-tzid
+          (or (detect-system-tzid (ensure-current-tzinfo-source))
+              default-system-tzid)))
+  
+  memoized-system-tzid)
+
+(define memoized-system-tzid #f)
+(define default-system-tzid "Etc/UTC")
