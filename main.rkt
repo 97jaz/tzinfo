@@ -18,16 +18,18 @@
          (struct-out exn:fail:tzinfo)
          (struct-out exn:fail:tzinfo:zone-not-found))
 
+(define istring/c (and/c string? immutable?))
+
 (provide/contract
  [current-tzinfo-source                  (parameter/c (or/c tzinfo-source? false/c))]
  [set-default-tzinfo-source-constructor! (-> (-> tzinfo-source?) void?)]
  [utc-seconds->tzoffset                  (-> string? real? tzoffset?)]
  [local-seconds->tzoffset                (-> string? real? (or/c tzoffset? tzgap? tzoverlap?))]
- [all-tzids                              (-> (listof string?))]
+ [all-tzids                              (-> (listof istring/c))]
  [tzid-exists?                           (-> string? boolean?)]
- [tzid->country-codes                    (-> string? (listof string?))]
- [country-code->tzids                    (-> string? (listof string?))]
- [system-tzid                            (-> (or/c string? false/c))])
+ [tzid->country-codes                    (-> string? (listof istring/c))]
+ [country-code->tzids                    (-> string? (listof istring/c))]
+ [system-tzid                            (-> (or/c istring/c false/c))])
 
 (define current-tzinfo-source
   (make-parameter #f))

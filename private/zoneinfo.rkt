@@ -58,7 +58,7 @@
           #f]))
      
      (and (tzinfo-has-tzid? zi candidate)
-          candidate))])
+          (string->immutable-string candidate)))])
 
 
 (define (make-zoneinfo-source)
