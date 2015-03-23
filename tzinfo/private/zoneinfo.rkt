@@ -8,6 +8,7 @@
 (require "generics.rkt"
          "structs.rkt"
          "os/unix.rkt"
+         "os/windows.rkt"
          "tzfile-parser.rkt"
          "tabfile-parser.rkt"
          "zoneinfo-search.rkt")
@@ -55,6 +56,8 @@
        (case (system-type)
          [(unix macosx)
           (detect-tzid/unix (zoneinfo-dir zi))]
+         [(windows)
+          (detect-tzid/windows)]
          [else
           #f]))
      
