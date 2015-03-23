@@ -3,7 +3,8 @@
 (require racket/contract/base
          racket/path
          racket/match
-         racket/set)
+         racket/set
+         racket/string)
 (require "generics.rkt"
          "structs.rkt"
          "os/unix.rkt"
@@ -99,7 +100,11 @@
   (for/set ([p (in-directory dir)]
             #:unless (excluded-zoneinfo-path? p))
     (string->immutable-string
-     (path->string (find-relative-path dir p)))))
+     (string-join
+      (map path->string
+           (explode-path
+            (find-relative-path dir p)))
+      "/"))))
  
 (define (excluded-zoneinfo-path? path)
   (or (directory-exists? path)
