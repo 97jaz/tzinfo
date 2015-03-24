@@ -55,7 +55,7 @@
      (define candidate
        (case (system-type)
          [(unix macosx)
-          (detect-tzid/unix (zoneinfo-dir zi))]
+          (detect-tzid/unix (zoneinfo-dir zi) (tzinfo->all-tzids zi))]
          [(windows)
           (detect-tzid/windows)]
          [else

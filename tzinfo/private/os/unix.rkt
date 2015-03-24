@@ -8,17 +8,17 @@
 
 (provide detect-tzid/unix)
 
-(define (detect-tzid/unix zoneinfo-dir)
+(define (detect-tzid/unix zoneinfo-dir all-tzids)
   (or (tzid-from-env)
       (and zoneinfo-dir
-           (tzid-from-/etc/localtime zoneinfo-dir))
+           (tzid-from-/etc/localtime zoneinfo-dir all-tzids))
       (tzid-from-/etc/timezone)
       (tzid-from-/etc/TIMEZONE)
       (tzid-from-/etc/sysconfig/clock)
       (tzid-from-/etc/default/init)))
 
 
-(define (tzid-from-/etc/localtime zoneinfo-dir)
+(define (tzid-from-/etc/localtime zoneinfo-dir all-tzids)
   (define /etc/localtime "/etc/localtime")
   (define base-path (resolve-path zoneinfo-dir))
   
@@ -26,11 +26,11 @@
     (define size (file-size /etc/localtime))
     (define content (file->bytes /etc/localtime))
     
-    (for/first ([f (in-directory base-path)]
-                #:when (and (file-exists? f)
-                            (= (file-size f) size)
-                            (equal? (file->bytes f) content)))
-      (path->string (find-relative-path base-path f))))
+    (for*/first ([tzid (in-list all-tzids)]
+                 [f (in-value (build-path base-path tzid))]
+                 #:when (and (= (file-size f) size)
+                             (equal? (file->bytes f) content)))
+      tzid))
   
   (and (file-exists? /etc/localtime)
        (let ([rel (find-relative-path base-path (resolve-path /etc/localtime))])
