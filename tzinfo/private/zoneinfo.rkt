@@ -100,19 +100,23 @@
                     (build-path path "tab" "zone_sun.tab")))))
 
 (define (read-tzids dir)
-  (for/set ([p (in-directory dir)]
-            #:unless (excluded-zoneinfo-path? p))
+  (define (use-path? p)
+    (use-relative-path? (find-relative-path dir p)))
+
+  (define (use-relative-path? rel)
+    (define rel-str (path->string rel))
+    
+    (and (not (regexp-match #rx"\\." rel-str))
+         (andmap (λ (f) (not (equal? rel-str f))) EXCLUDED-ZONEINFO-PATHS)))
+    
+  (for*/set ([p (in-directory dir use-path?)]
+             [r (in-value (find-relative-path dir p))]
+             #:when (and (not (directory-exists? p))
+                         (use-relative-path? r)))
     (string->immutable-string
      (string-join
-      (map path->string
-           (explode-path
-            (find-relative-path dir p)))
+      (map path->string (explode-path r))
       "/"))))
- 
-(define (excluded-zoneinfo-path? path)
-  (or (directory-exists? path)
-      (let ([filename (path->string (file-name-from-path path))])
-        (or (regexp-match? #px"\\." filename)
-            (member filename
-                    '("+VERSION" "localtime" "posix" "posixrules" "right" "src" "Factory"))))))
 
+(define EXCLUDED-ZONEINFO-PATHS
+  '("+VERSION" "localtime" "posix" "posixrules" "right" "src" "Factory"))
