@@ -1,6 +1,7 @@
 #lang racket/base
 
-(require racket/contract/base)
+(require racket/contract/base
+         syntax/modresolve)
 
 (require "private/generics.rkt"
          "private/structs.rkt"
@@ -9,8 +10,8 @@
 ;; Load the zoneinfo-data package, if it's installed
 ;; (as it should be on Windows, for example).
 (define ZONEINFO-DATA
-  (with-handlers ([exn:fail:filesystem? (lambda _ #f)])
-    (dynamic-require 'tzinfo/zoneinfo-data 'ZONEINFO-DATA)))
+  (and (file-exists? (resolve-module-path 'tzinfo/zoneinfo-data #f))
+       (dynamic-require 'tzinfo/zoneinfo-data 'ZONEINFO-DATA)))
 
 (provide (struct-out tzoffset)
          (struct-out tzgap)
