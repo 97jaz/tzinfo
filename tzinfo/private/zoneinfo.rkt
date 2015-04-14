@@ -34,33 +34,35 @@
   #:methods gen:tzinfo-source
   [(define seconds->tzoffset/utc   zoneinfo-seconds->tzoffset/utc)
    (define seconds->tzoffset/local zoneinfo-seconds->tzoffset/local)
-   
+
    (define (tzinfo->all-tzids zi)
      (sort (set->list (zoneinfo-tzids zi))
            string<?))
-   
+
    (define (tzinfo-has-tzid? zi tzid)
      (set-member? (zoneinfo-tzids zi) tzid))
-   
+
    (define (tzinfo-tzid->country-codes zi tzid)
      (define tab (hash-ref (zoneinfo-tabzone-index zi) tzid #f))
      (if tab (tabzone-country-codes tab) '()))
-   
+
    (define (tzinfo-country-code->tzids zi cc)
      (for/list ([tab (in-hash-values (zoneinfo-tabzone-index zi))]
                 #:when (member cc (tabzone-country-codes tab)))
        (tabzone-id tab)))
-   
+
    (define (detect-system-tzid zi)
      (define candidate
        (case (system-type)
          [(unix macosx)
-          (detect-tzid/unix (zoneinfo-dir zi) (tzinfo->all-tzids zi))]
+          (detect-tzid/unix (zoneinfo-dir zi)
+                            (find-zoneinfo-directory default-zoneinfo-search-path)
+                            (tzinfo->all-tzids zi))]
          [(windows)
           (detect-tzid/windows)]
          [else
           #f]))
-     
+
      (and (tzinfo-has-tzid? zi candidate)
           (string->immutable-string candidate)))])
 
@@ -82,19 +84,22 @@
     [(vector intervals offsets)
      (zone tzid intervals offsets)]))
 
-(define current-zoneinfo-search-path
-  (make-parameter (list "/usr/share/zoneinfo"
-                        "/usr/share/lib/zoneinfo"
-                        "/etc/zoneinfo")))
+(define default-zoneinfo-search-path
+  (list "/usr/share/zoneinfo"
+        "/usr/share/lib/zoneinfo"
+        "/etc/zoneinfo"))
 
-(define (find-zoneinfo-directory)
-  (for/first ([path (in-list (current-zoneinfo-search-path))]
+(define current-zoneinfo-search-path
+  (make-parameter default-zoneinfo-search-path))
+
+(define (find-zoneinfo-directory [path-list (current-zoneinfo-search-path)])
+  (for/first ([path (in-list path-list)]
               #:when (valid-zoneinfo-directory? path))
     path))
 
 (define (valid-zoneinfo-directory? path)
   (and (directory-exists? path)
-       (ormap file-exists? 
+       (ormap file-exists?
               (list (build-path path "zone1970.tab")
                     (build-path path "zone.tab")
                     (build-path path "tab" "zone_sun.tab")))))
@@ -105,10 +110,10 @@
 
   (define (use-relative-path? rel)
     (define rel-str (path->string rel))
-    
+
     (and (not (regexp-match #rx"\\." rel-str))
          (andmap (λ (f) (not (equal? rel-str f))) EXCLUDED-ZONEINFO-PATHS)))
-    
+
   (for*/set ([p (in-directory dir use-path?)]
              [r (in-value (find-relative-path dir p))]
              #:when (and (not (directory-exists? p))
