@@ -21,8 +21,8 @@ The @tt{tzinfo} library provides an interface for querying the IANA time zone da
 UNIX systems usually come with a compiled version of the IANA database (typically in
 @tt{/usr/share/zoneinfo}). @tt{tzinfo} will use the system's database if available.
 However, if the @tt{tzdata} package is installed, that will be used instead. Since
-Windows systems do not come with a zoneinfo database, Windows users must install
-@tt{tzdata} to use @tt{tzinfo}.
+Windows systems do not come with a zoneinfo database, @tt{tzdata} will automatically be
+installed on Windows systems when @tt{tzinfo} is installed.
 
 @section{Querying the Database}
 
