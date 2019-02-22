@@ -1,6 +1,7 @@
 #lang racket/base
 
-(require file/resource
+(require racket/function
+         file/resource
          cldr/core
          "env.rkt"
          "windows-registry.rkt")
@@ -8,10 +9,12 @@
 (provide detect-tzid/windows)
 
 (define (detect-tzid/windows)
-  (or (tzid-from-env)
-      (tzid-from-registry/vista)
-      (tzid-from-registry/nt)
-      (tzid-from-registry/95)))
+  (filter
+   identity
+   (list (tzid-from-env)
+         (tzid-from-registry/vista)
+         (tzid-from-registry/nt)
+         (tzid-from-registry/95))))
 
 (define (tzid-from-registry/vista)
   (windows->tzid

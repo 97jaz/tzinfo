@@ -1,6 +1,7 @@
 #lang racket/base
 
 (require racket/file
+         racket/function
          racket/match
          racket/path
          racket/string
@@ -8,36 +9,58 @@
 
 (provide detect-tzid/unix)
 
-(define (detect-tzid/unix zoneinfo-dir default-zoneinfo-dir all-tzids)
-  (or (tzid-from-env)
-      (and zoneinfo-dir
-           (tzid-from-/etc/localtime zoneinfo-dir default-zoneinfo-dir all-tzids))
-      (tzid-from-/etc/timezone)
-      (tzid-from-/etc/TIMEZONE)
-      (tzid-from-/etc/sysconfig/clock)
-      (tzid-from-/etc/default/init)))
+(define (detect-tzid/unix default-zoneinfo-dir all-tzids)
+  (filter
+   identity
+   (list (tzid-from-env)
+         (tzid-from-/etc/localtime default-zoneinfo-dir all-tzids)
+         (tzid-from-/etc/timezone)
+         (tzid-from-/etc/TIMEZONE)
+         (tzid-from-/etc/sysconfig/clock)
+         (tzid-from-/etc/default/init))))
 
+(define /etc/localtime "/etc/localtime")
 
-(define (tzid-from-/etc/localtime zoneinfo-dir default-zoneinfo-dir all-tzids)
-  (define /etc/localtime "/etc/localtime")
-  (define base-path (resolve-path zoneinfo-dir))
+(define (tzid-from-/etc/localtime default-zoneinfo-dir all-tzids)
+  (and
+   (file-exists? /etc/localtime)
+   default-zoneinfo-dir
 
-  (define (find-matching-zone)
-    (define size (file-size /etc/localtime))
-    (define content (file->bytes /etc/localtime))
+   (cond
+     [(link-exists? /etc/localtime)
+      (tzid-from-linked-/etc/localtime default-zoneinfo-dir all-tzids)]
+     [else
+      (tzid-from-copied-/etc/localtime default-zoneinfo-dir all-tzids)])))
 
-    (for*/first ([tzid (in-list all-tzids)]
-                 [f (in-value (build-path base-path tzid))]
-                 #:when (and (= (file-size f) size)
-                             (equal? (file->bytes f) content)))
-      tzid))
+;; Many unix systems, including the most recent OS X releases, symlink
+;; /etc/localtime to a tzinfo file. The file does not contain the tzid;
+;; it's merely named by the tzid. So we have to find which of the
+;; tzid-named files is identical to /etc/localtime.
+(define (tzid-from-linked-/etc/localtime default-zoneinfo-dir all-tzids)
+  (define inode (file-or-directory-identity /etc/localtime))
+  (define base-path (resolve-path default-zoneinfo-dir))
 
-  (and (file-exists? /etc/localtime)
-       default-zoneinfo-dir
-       (let ([rel (find-relative-path default-zoneinfo-dir (normalize-path /etc/localtime "/etc"))])
-         (match (explode-path rel)
-           [(cons 'up _) (find-matching-zone)]
-           [_ (path->string rel)]))))
+  (for*/first ([tzid (in-list all-tzids)]
+               [f (in-value (build-path base-path tzid))]
+               #:when (and (file-exists? f)
+                           (= inode (file-or-directory-identity f))))
+    tzid))
+
+;; Older versions of OS X, instead of symlinking /etc/localtime to
+;; a tzinfo file, copied the file instead. So we can't check
+;; for inode identity; instead we need to see if the files have
+;; identical contents.
+(define (tzid-from-copied-/etc/localtime default-zoneinfo-dir all-tzids)
+  (define base-path (resolve-path default-zoneinfo-dir))
+  (define size (file-size /etc/localtime))
+  (define content (file->bytes /etc/localtime))
+
+  (for*/first ([tzid (in-list all-tzids)]
+               [f (in-value (build-path base-path tzid))]
+               #:when (and (file-exists? f)
+                           (= (file-size f) size)
+                           (equal? (file->bytes f) content)))
+    tzid))
 
 (define (tzid-from-/etc/timezone)
   (define /etc/timezone "/etc/timezone")

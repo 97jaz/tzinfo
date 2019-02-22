@@ -52,19 +52,20 @@
        (tabzone-id tab)))
 
    (define (detect-system-tzid zi)
-     (define candidate
+     (define candidates
        (case (system-type)
          [(unix macosx)
-          (detect-tzid/unix (zoneinfo-dir zi)
-                            (find-zoneinfo-directory default-zoneinfo-search-path)
-                            (tzinfo->all-tzids zi))]
+          (detect-tzid/unix
+           (find-zoneinfo-directory default-zoneinfo-search-path)
+           (tzinfo->all-tzids zi))]
          [(windows)
           (detect-tzid/windows)]
          [else
-          #f]))
+          null]))
 
-     (and (tzinfo-has-tzid? zi candidate)
-          (string->immutable-string candidate)))])
+     (for/first ([tzid (in-list candidates)]
+                 #:when (tzinfo-has-tzid? zi tzid))
+       (string->immutable-string tzid)))])
 
 
 (define (make-zoneinfo-source)
