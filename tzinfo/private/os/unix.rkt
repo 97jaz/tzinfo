@@ -1,23 +1,18 @@
 #lang racket/base
 
 (require racket/file
-         racket/function
-         racket/match
-         racket/path
          racket/string
          "env.rkt")
 
-(provide detect-tzid/unix)
+(provide unix-tzid-tests)
 
-(define (detect-tzid/unix default-zoneinfo-dir all-tzids)
-  (filter
-   identity
-   (list (tzid-from-env)
-         (tzid-from-/etc/localtime default-zoneinfo-dir all-tzids)
-         (tzid-from-/etc/timezone)
-         (tzid-from-/etc/TIMEZONE)
-         (tzid-from-/etc/sysconfig/clock)
-         (tzid-from-/etc/default/init))))
+(define (unix-tzid-tests default-zoneinfo-dir all-tzids)
+  (list tzid-from-env
+        (λ () (tzid-from-/etc/localtime default-zoneinfo-dir all-tzids))
+        tzid-from-/etc/timezone
+        tzid-from-/etc/TIMEZONE
+        tzid-from-/etc/sysconfig/clock
+        tzid-from-/etc/default/init))
 
 (define /etc/localtime "/etc/localtime")
 
