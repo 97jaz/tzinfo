@@ -125,4 +125,12 @@
       "/"))))
 
 (define EXCLUDED-ZONEINFO-PATHS
-  '("+VERSION" "localtime" "posix" "posixrules" "right" "src" "Factory"))
+  '("+VERSION"
+    "leapseconds"
+    "localtime"
+    "posix"
+    "posixrules"
+    "right"
+    "src"
+    "tzinstall"
+    "Factory"))
