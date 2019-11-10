@@ -227,3 +227,17 @@ at the given local time in the given time zone, according to the tzinfo source.
 Returns the time zone ID currently in use by the operating system, if it can be detected,
 @racket[#f] otherwise.
 }
+
+@section{Building standalone executables that use @tt{tzinfo}}
+
+If you build a standalone executable (with @tt{raco exe}) that uses this library,
+you should keep in mind where you intend to deploy it. Most UNIX / MacOS systems
+come with the zoneinfo database installed, but Windows systems do not, nor do some
+minimal UNIX systems.
+
+To ensure that the target system will be able to find and use zoneinfo files,
+you should install the @tt{tzdata} package. (When you install @tt{tzinfo} on a
+Windows system, @tt{tzdata} is automatically installed.) Then, when you
+build your executable, be sure to include the @tt{tzdata} library:
+
+@commandline{raco exe ++lib tzinfo/tzdata application app.exe}
