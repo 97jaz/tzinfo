@@ -27,10 +27,21 @@
 
 (define (windows->tzid tz)
   (and tz
-       (for*/first ([mz (in-list (windows-zones))]
-                    [win (in-value (cldr-ref mz '(mapZone _other)))]
-                    #:when (equal? tz win))
-         (cldr-ref mz '(mapZone _type)))))
+       (for*/first ([map-tz (in-list (windows-zones))]
+                    [win-tz (in-value (cldr-ref map-tz '(mapZone _other)))]
+                    [territory (in-value (cldr-ref map-tz '(mapZone _territory)))]
+                    #:when (and (equal? tz win-tz)
+                                (equal? territory "001")))
+         (cldr-ref map-tz '(mapZone _type)))))
+
+(module+ test
+  (require rackunit)
+
+  ;; https://github.com/97jaz/cldr-core/issues/1
+  ;; I've also verified that every windows zone has an entry
+  ;; where _territory = "001".
+  (check-equal? (windows->tzid "W. Australia Standard Time")
+                "Australia/Perth"))
 
 (define (tzid-from-registry-list prefix)
   (define standard (standard-name))
