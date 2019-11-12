@@ -70,10 +70,35 @@
 
 (define (make-zoneinfo-source)
   (define dir (find-zoneinfo-directory))
+  (unless dir (raise-zoneinfo-not-found))
+
   (zoneinfo dir
             (read-tzids dir)
             (make-hash)
             (parse-tabfile dir)))
+
+(define (raise-zoneinfo-not-found)
+  (define (path-string->string ps)
+    (if (path? ps)
+        (path->string ps)
+        ps))
+
+  (raise
+   (exn:fail:tzinfo:zoneinfo-not-found
+    (apply
+     string-append
+     `("Unable to locate the zoneinfo database on this computer. "
+       "We searched for it in the following places:\n"
+       ,@(map (λ (path)
+                (string-append "  - " (path-string->string path) "\n"))
+              (current-zoneinfo-search-path))
+       "\n"
+       "Most likely, you need to install a package for your operating "
+       "system that contains the zoneinfo database. If the zoneinfo "
+       "database is already installed on your computer, please file a "
+       "bug report at https://github.com/97jaz/tzinfo/issues and mention "
+       "where on your filesystem it is installed."))
+    (current-continuation-marks))))
 
 (define (zoneinfo-zone zinfo tzid)
   (hash-ref! (zoneinfo-zones zinfo)

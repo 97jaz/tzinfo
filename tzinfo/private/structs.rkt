@@ -45,3 +45,4 @@
 
 (struct exn:fail:tzinfo exn:fail () #:transparent)
 (struct exn:fail:tzinfo:zone-not-found exn:fail:tzinfo () #:transparent)
+(struct exn:fail:tzinfo:zoneinfo-not-found exn:fail:tzinfo () #:transparent)
