@@ -10,7 +10,8 @@
          (struct-out tzgap)
          (struct-out tzoverlap)
          (struct-out exn:fail:tzinfo)
-         (struct-out exn:fail:tzinfo:zone-not-found))
+         (struct-out exn:fail:tzinfo:zone-not-found)
+         (struct-out exn:fail:tzinfo:zoneinfo-not-found))
 
 (define istring/c (and/c string? immutable?))
 

@@ -160,6 +160,12 @@ Sets the constructor function that will be applied to build the default tzinfo s
 To use a custom source, you must call this function before using any of the querying functions.
 }
 
+@defstruct*[exn:fail:tzinfo:zoneinfo-not-found ()]{
+An exception that can be raised by any function that attempts to construct a
+@tt{zoneinfo}-based data source, when the @tt{zoneinfo} database cannot be
+found.
+}
+
 @section{Data Source Generics}
 
 @defmodule[tzinfo/source]

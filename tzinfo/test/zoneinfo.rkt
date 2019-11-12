@@ -62,3 +62,9 @@
   (check-exn exn:fail:tzinfo:zone-not-found?
              (λ ()
                (utc-seconds->tzoffset "Fillory/Whitespire" 675765756))))
+
+;; Check for proper error when we can't find the zoneinfo database
+(parameterize ([current-zoneinfo-search-path '("/path/to/nowhere")])
+  (check-exn exn:fail:tzinfo:zoneinfo-not-found?
+             (λ ()
+               (all-tzids))))
