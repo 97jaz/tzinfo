@@ -38,7 +38,7 @@
   (for*/first ([tzid (in-list all-tzids)]
                [f (in-value (build-path base-path tzid))]
                #:when (and (file-exists? f)
-                           (= inode (file-or-directory-identity f))))
+                           (= inode (file-or-directory-identity f #t))))
     tzid))
 
 ;; Older versions of OS X, instead of symlinking /etc/localtime to
