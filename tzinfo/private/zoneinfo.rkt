@@ -3,8 +3,10 @@
 (require racket/contract/base
          racket/path
          racket/match
+         racket/runtime-path
          racket/set
-         racket/string)
+         racket/string
+         (for-syntax racket/base))
 (require "generics.rkt"
          "structs.rkt"
          "os/unix.rkt"
@@ -115,8 +117,12 @@
         "/usr/share/lib/zoneinfo"
         "/etc/zoneinfo"))
 
+;; If the tzdata package (ver. >= 0.5) is installed, its zoneinfo
+;; directory will be here.
+(define-runtime-path tzdata-zoneinfo-path '(share "tzdata/zoneinfo"))
+
 (define current-zoneinfo-search-path
-  (make-parameter default-zoneinfo-search-path))
+  (make-parameter (cons tzdata-zoneinfo-path default-zoneinfo-search-path)))
 
 (define (find-zoneinfo-directory [path-list (current-zoneinfo-search-path)])
   (for/first ([path (in-list path-list)]
