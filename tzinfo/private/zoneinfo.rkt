@@ -6,7 +6,11 @@
          racket/runtime-path
          racket/set
          racket/string
-         (for-syntax racket/base))
+         setup/dirs
+         version/utils
+         (for-syntax racket/base
+                     setup/dirs
+                     version/utils))
 (require "generics.rkt"
          "structs.rkt"
          "os/unix.rkt"
@@ -117,12 +121,33 @@
         "/usr/share/lib/zoneinfo"
         "/etc/zoneinfo"))
 
-;; If the tzdata package (ver. >= 0.5) is installed, its zoneinfo
-;; directory will be here.
-(define-runtime-path tzdata-zoneinfo-path '(share "tzdata/zoneinfo"))
+;; The 'share option of define-runtime-path was added in version 7.5.0.7.
+(define-runtime-path-list relocatable-tzdata-zoneinfo-path-list
+  (cond
+    [(version<? (version) "7.5.0.7")
+     null]
+    [else
+     (list '(share "tzdata/zoneinfo"))]))
+
+;; For older versions of Racket, we can't correctly support
+;; `raco distribute`, since this package may have been built on a
+;; different system (with a different share directory path) than the one
+;; on which `raco distribute` is run. But we can support non-`raco
+;; distribute` uses.
+(define non-relocatable-tzdata-zoneinfo-path-list
+  (cond
+    [(version<? (version) "7.5.0.7")
+     (list (build-path (find-user-share-dir) "tzdata/zoneinfo")
+           (build-path (find-share-dir) "tzdata/zoneinfo"))]
+    [else
+     null]))
 
 (define current-zoneinfo-search-path
-  (make-parameter (cons tzdata-zoneinfo-path default-zoneinfo-search-path)))
+  (make-parameter
+   (map simplify-path
+        (append relocatable-tzdata-zoneinfo-path-list
+                non-relocatable-tzdata-zoneinfo-path-list
+                default-zoneinfo-search-path))))
 
 (define (find-zoneinfo-directory [path-list (current-zoneinfo-search-path)])
   (for/first ([path (in-list path-list)]

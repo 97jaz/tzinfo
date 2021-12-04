@@ -1,8 +1,8 @@
 #lang info
 
 (define collection 'multi)
-(define version "0.5")
-(define deps (list (list "base" '#:version "7.5.0.7")
+(define version "0.6")
+(define deps (list "base"
                    "cldr-core"
                    "rackunit-lib"
                    (list "tzdata" '#:platform 'windows '#:version "0.5")))
