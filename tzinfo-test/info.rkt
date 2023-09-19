@@ -2,7 +2,5 @@
 
 (define collection "tzinfo")
 (define deps '("base"
-               "tzinfo-doc"
+               "rackunit-lib"
                "tzinfo-lib"))
-(define implies '("tzinfo-doc"
-                  "tzinfo-lib"))

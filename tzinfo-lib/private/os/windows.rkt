@@ -5,7 +5,9 @@
          "env.rkt"
          "windows-registry.rkt")
 
-(provide windows-tzid-tests)
+(provide
+ windows-tzid-tests
+ windows->tzid)
 
 (define (windows-tzid-tests)
   (list tzid-from-env
@@ -34,19 +36,10 @@
                                 (equal? territory "001")))
          (cldr-ref map-tz '(mapZone _type)))))
 
-(module+ test
-  (require rackunit)
-
-  ;; https://github.com/97jaz/cldr-core/issues/1
-  ;; I've also verified that every windows zone has an entry
-  ;; where _territory = "001".
-  (check-equal? (windows->tzid "W. Australia Standard Time")
-                "Australia/Perth"))
-
 (define (tzid-from-registry-list prefix)
   (define standard (standard-name))
   (define tzs (subresources KEY prefix))
-  
+
   (for*/first ([tz (in-list tzs)]
                [std (in-value (get-resource KEY (format "~a\\~a\\Std" prefix tz)))]
                #:when (equal? standard std))
@@ -54,7 +47,7 @@
 
 (define (standard-name)
   (get-resource KEY (string-append TZINFO-KEY "\\StandardName")))
-  
+
 
 (define KEY "HKEY_LOCAL_MACHINE")
 (define TZINFO-KEY "SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation")
